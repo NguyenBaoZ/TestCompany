@@ -17,10 +17,10 @@ class TaskInfoRepository(var col: CollectionReference) {
 
     suspend fun updateDoc(info: TaskInfoModel) {
         info.UpdateTime = Date();
-        col.document(info.uid!!).set(info).await()
+        col.document(info.taskid!!).set(info).await()
     }
 
-    suspend fun deleteDoc(info: UserInfoModel) {
-        col.document(info.uid!!).delete().await()
+    suspend fun deleteDoc(info: TaskInfoModel) {
+        col.document(info.taskid!!).delete().await()
     }
 }

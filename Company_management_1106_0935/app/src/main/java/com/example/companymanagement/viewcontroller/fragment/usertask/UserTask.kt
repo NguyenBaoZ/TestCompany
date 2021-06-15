@@ -22,6 +22,8 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 
 class UserTask : Fragment(){
@@ -30,13 +32,8 @@ class UserTask : Fragment(){
 
     var db = FirebaseFirestore.getInstance()
     var taskmodel: UserTaskViewModel = UserTaskViewModel()
-    var taskAdapter: ProjectRecyclerViewAdapter? = null
+    lateinit var taskAdapter: ProjectRecyclerViewAdapter
 
-    companion object {
-        fun newInstance() = UserTask()
-    }
-
-    private lateinit var viewModelMain: UserTaskViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,7 +46,18 @@ class UserTask : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupRecyclerview()
+        val query : Query = db.collection("task")
+        val firestoreRecyclerOptions: FirestoreRecyclerOptions<TaskInfoModel> = FirestoreRecyclerOptions.Builder<TaskInfoModel>()
+            .setQuery(query,TaskInfoModel::class.java)
+            .build()
+        taskAdapter = ProjectRecyclerViewAdapter(firestoreRecyclerOptions)
+
+        val layout = LinearLayoutManager(context);
+        val recyclerView = view?.findViewById<RecyclerView>(R.id.user_project_container)
+        layout.orientation = RecyclerView.VERTICAL;
+        recyclerView?.adapter = taskAdapter;
+        recyclerView?.layoutManager = layout
+
         taskAdapter!!.setOnClickListener(object : ProjectRecyclerViewAdapter.onItemClickListener{
             override fun onItemClick(position: Int) {
                 //Toast.makeText(this@UserTask.context,"Clicked $position",Toast.LENGTH_SHORT).show()
@@ -113,30 +121,13 @@ class UserTask : Fragment(){
             }
         })
     }
-
-    fun setupRecyclerview() {
-        val query : Query = db.collection("task")
-        val firestoreRecyclerOptions: FirestoreRecyclerOptions<TaskInfoModel> = FirestoreRecyclerOptions.Builder<TaskInfoModel>()
-            .setQuery(query,TaskInfoModel::class.java)
-            .build()
-
-        taskAdapter = ProjectRecyclerViewAdapter(firestoreRecyclerOptions)
-
-        val layout = LinearLayoutManager(context);
-        val recyclerView = view?.findViewById<RecyclerView>(R.id.user_project_container)
-        //layout.orientation = RecyclerView.VERTICAL;
-        recyclerView?.layoutManager = LinearLayoutManager(context);
-        recyclerView?.adapter = taskAdapter;
-        recyclerView?.setHasFixedSize(true)
-    }
-
     override fun onStart() {
         super.onStart()
-        taskAdapter!!.startListening()
+        taskAdapter.startListening()
     }
 
-    override fun onStop() {
-        super.onStop()
-        taskAdapter!!.stopListening()
+    override fun onDestroy() {
+        super.onDestroy()
+        taskAdapter.stopListening()
     }
 }

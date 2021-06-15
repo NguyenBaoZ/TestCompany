@@ -32,9 +32,9 @@ data class TaskInfoModel(
     @set: PropertyName("infor")
     var Infor: String? = null,
 
-) {
+){
     @DocumentId
-    val uid: String? = null
+    val taskid: String? = null
 
     //document id shall auto parse from doc by to object function . it should be unsetable
 
